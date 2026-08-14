@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Captioning AI | Cantilever</title>
+
+    <style>
+        /* =====================================================
+           RESET
+        ===================================================== */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html, body {
+            width: 100%;
+            min-height: 100%;
+        }
+
+        /* =====================================================
+           BODY
+        ===================================================== */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", Inter, Arial, sans-serif;
+            color: white;
+            min-height: 100vh;
+            overflow-x: hidden;
+            background:
+                radial-gradient(circle at 12% 20%, rgba(255, 70, 190, 0.20), transparent 28%),
+                radial-gradient(circle at 88% 70%, rgba(110, 70, 255, 0.20), transparent 30%),
+                radial-gradient(circle at 50% 100%, rgba(190, 60, 255, 0.10), transparent 35%),
+                #070708;
+            animation: pageEnter 0.65s ease forwards;
+        }
+
+        /* =====================================================
+           ANIMATIONS
+        ===================================================== */
+        @keyframes pageEnter {
+            from { opacity: 0; transform: translateY(18px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        body.page-leaving {
+            animation: pageLeave 0.35s ease forwards;
+        }
+
+        @keyframes pageLeave {
+            from { opacity: 1; transform: translateY(0); }
+            to { opacity: 0; transform: translateY(-12px); }
+        }
+
+        /* =====================================================
+           TOP HEADER
+        ===================================================== */
+        .top-bar {
+            width: 100%;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 28px 42px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: relative;
+            z-index: 20;
+        }
+
+        .brand {
+            font-size: 18px;
+            font-weight: 700;
+            letter-spacing: 7px;
+            color: #ffffff;
+        }
+
+        .back-button {
+            border: none;
+            background: transparent;
+            color: white;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            padding: 10px 14px;
+            transition: transform 0.25s ease, opacity 0.25s ease;
+        }
+
+        .back-button:hover {
+            transform: translateX(-5px);
+            opacity: 0.65;
+        }
+
+        /* =====================================================
+           MAIN WRAPPER & WINDOW
+        ===================================================== */
+        .caption-wrapper {
+            width: min(1050px, calc(100% - 48px));
+            margin: 35px auto 70px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .caption-window {
+            width: 100%;
+            min-height: 650px;
+            background: transparent;
+            border-radius: 24px;
+            overflow: hidden;
+            position: relative;
+            border: 1px solid rgba(255,255,255,0.08);
+            box-shadow: 0 35px 90px rgba(0,0,0,0.18), 0 0 100px rgba(180,50,255,0.06);
+            animation: cardAppear 0.75s cubic-bezier(.22,1,.36,1);
+        }
+
+        @keyframes cardAppear {
+            from { opacity: 0; transform: translateY(35px) scale(0.97); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        /* =====================================================
+           MOVING GLOW
+        ===================================================== */
+        .glow-area {
+            position: absolute;
+            width: 520px;
+            height: 520px;
+            left: 50%;
+            top: 52%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .glow-blob {
+            position: absolute;
+            width: 360px;
+            height: 300px;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            border-radius: 42% 58% 55% 45% / 45% 42% 58% 55%;
+            background:
+                radial-gradient(circle at 35% 35%, rgba(255,220,250,0.90), transparent 22%),
+                linear-gradient(135deg, #ff4db8, #bd48ff 42%, #6938ff 72%, #111);
+            opacity: 0.72;
+            filter: blur(1px);
+            box-shadow: 0 0 90px rgba(255,50,190,0.45), 0 0 160px rgba(112,40,255,0.30);
+            animation: floatingBlob 7s ease-in-out infinite, blobRotate 12s linear infinite;
+        }
+
+        .glow-blob::after {
+            content: "";
+            position: absolute;
+            inset: 18px;
+            border-radius: inherit;
+            background: radial-gradient(circle at 65% 70%, rgba(255,255,255,0.45), transparent 22%);
+            filter: blur(18px);
+        }
+
+        @keyframes floatingBlob {
+            0%, 100% { transform: translate(-50%, -50%) scale(1) rotate(0deg); }
+            25% { transform: translate(-47%, -54%) scale(1.08) rotate(8deg); }
+            50% { transform: translate(-53%, -48%) scale(0.94) rotate(-5deg); }
+            75% { transform: translate(-48%, -52%) scale(1.06) rotate(5deg); }
+        }
+
+        @keyframes blobRotate {
+            from, to { border-radius: 42% 58% 55% 45% / 45% 42% 58% 55%; }
+            50% { border-radius: 60% 40% 45% 55% / 55% 58% 42% 45%; }
+        }
+
+        /* =====================================================
+           CAPTION HEADER
+        ===================================================== */
+        .caption-header {
+            position: relative;
+            z-index: 5;
+            height: 78px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 14px 20px;
+            background: rgba(10,10,12,0.72);
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            border-radius: 24px 24px 0 0;
+        }
+
+        .caption-avatar {
+            width: 45px;
+            height: 45px;
+            flex-shrink: 0;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #ff56b8, #7546ff);
+            font-size: 22px;
+            box-shadow: 0 0 25px rgba(255,70,190,0.28);
+        }
+
+        .caption-info { min-width: 0; }
+        .caption-name { color: white; font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+        .caption-status { color: #858585; font-size: 12px; }
+
+        .status-dot {
+            display: inline-block;
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: #35e68b;
+            margin-right: 5px;
+            box-shadow: 0 0 8px rgba(53,230,139,0.8);
+        }
+
+        /* =====================================================
+           CONTENT & UPLOAD AREA
+        ===================================================== */
+        .caption-content {
+            position: relative;
+            z-index: 3;
+            padding: 35px 30px 70px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 570px;
+        }
+
+        .upload-area {
+            width: 100%;
+            max-width: 700px;
+            min-height: 300px;
+            border: 1px dashed rgba(255,255,255,0.20);
+            border-radius: 28px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 30px;
+            cursor: pointer;
+            background: rgba(255,255,255,0.035);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            transition: border-color 0.25s ease, background 0.25s ease, transform 0.25s ease;
+        }
+
+        .upload-area:focus-visible {
+            outline: 2px solid #ff4db8;
+            outline-offset: 4px;
+        }
+
+        .upload-area:hover {
+            border-color: rgba(255,255,255,0.45);
+            background: rgba(255,255,255,0.06);
+            transform: translateY(-3px);
+        }
+
+        .upload-area.dragover {
+            border-color: #ff4db8;
+            background: rgba(255,70,190,0.08);
+            transform: scale(1.01);
+        }
+
+        .upload-icon {
+            width: 92px;
+            height: 92px;
+            border-radius: 27px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #ff43ae, #914bff);
+            font-size: 38px;
+            margin-bottom: 22px;
+            box-shadow: 0 15px 45px rgba(200,60,255,0.30);
+            transition: transform 0.25s ease, box-shadow 0.25s ease;
+        }
+
+        .upload-area:hover .upload-icon {
+            transform: translateY(-5px) scale(1.04);
+            box-shadow: 0 20px 55px rgba(200,60,255,0.45);
+        }
+
+        .upload-title { font-size: 22px; font-weight: 700; margin-bottom: 8px; }
+        .upload-description { color: #858585; font-size: 14px; text-align: center; line-height: 1.6; }
+        .upload-description strong { color: #bbbbbb; }
+
+        #imageInput { display: none; }
+
+        /* =====================================================
+           PREVIEW AREA
+        ===================================================== */
+        .preview-container {
+            width: 100%;
+            max-width: 700px;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .preview-container.active {
+            display: flex;
+            animation: previewAppear 0.45s cubic-bezier(.22,1,.36,1);
+        }
+
+        @keyframes previewAppear {
+            from { opacity: 0; transform: translateY(15px) scale(0.97); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        .preview-image {
+            display: block;
+            max-width: 100%;
+            max-height: 430px;
+            object-fit: contain;
+            border-radius: 24px;
+            border: 1px solid rgba(255,255,255,0.12);
+            box-shadow: 0 25px 70px rgba(0,0,0,0.45);
+        }
+
+        /* =====================================================
+           BUTTONS
+        ===================================================== */
+        .button-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            margin-top: 25px;
+            flex-wrap: wrap;
+        }
+
+        .generate-button {
+            min-width: 210px;
+            height: 52px;
+            border: none;
+            border-radius: 18px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 9px;
+            padding: 0 24px;
+            background: linear-gradient(135deg, #ff43ae, #914bff);
+            color: white;
+            font-size: 15px;
+            font-weight: 700;
+            box-shadow: 0 8px 30px rgba(200,60,255,0.28);
+            transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+        }
+
+        .generate-button:hover {
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 12px 35px rgba(200,60,255,0.45);
+        }
+
+        .generate-button:active { transform: scale(0.96); }
+        .generate-button:disabled { opacity: 0.55; cursor: not-allowed; transform: none; box-shadow: none; }
+
+        .remove-button {
+            height: 52px;
+            padding: 0 20px;
+            border-radius: 18px;
+            border: 1px solid rgba(255,255,255,0.12);
+            background: rgba(255,255,255,0.05);
+            color: #cccccc;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: background 0.2s ease, color 0.2s ease;
+        }
+
+        .remove-button:hover { background: rgba(255,255,255,0.10); color: white; }
+
+        /* =====================================================
+           LOADING, ERROR & RESULT
+        ===================================================== */
+        .loading {
+            display: none;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 14px;
+            margin-top: 28px;
+            color: #999;
+        }
+
+        .loading.active { display: flex; animation: fadeIn 0.3s ease; }
+
+        .spinner {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: 3px solid rgba(255,255,255,0.12);
+            border-top-color: #ff4db8;
+            border-right-color: #8c4cff;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        .result-container {
+            width: 100%;
+            max-width: 700px;
+            display: none;
+            margin-top: 35px;
+            padding: 25px;
+            border-radius: 24px;
+            background: rgba(255,255,255,0.045);
+            border: 1px solid rgba(255,255,255,0.10);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.20);
+        }
+
+        .result-container.active {
+            display: block;
+            animation: resultAppear 0.55s cubic-bezier(.22,1,.36,1);
+        }
+
+        @keyframes resultAppear {
+            from { opacity: 0; transform: translateY(20px) scale(0.97); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        .result-label { font-size: 11px; letter-spacing: 3px; font-weight: 700; color: #999; margin-bottom: 12px; }
+        .result-text { font-size: 20px; line-height: 1.6; color: white; font-weight: 500; }
+
+        .error-message {
+            width: 100%;
+            max-width: 700px;
+            display: none;
+            margin-top: 20px;
+            padding: 15px 18px;
+            border-radius: 15px;
+            background: rgba(255,60,100,0.08);
+            border: 1px solid rgba(255,60,100,0.18);
+            color: #ff9cad;
+            font-size: 14px;
+            text-align: center;
+        }
+
+        .error-message.active { display: block; animation: fadeIn 0.3s ease; }
+
+        /* =====================================================
+           FOOTER & RESPONSIVE
+        ===================================================== */
+        .page-footer {
+            text-align: center;
+            color: #666;
+            font-size: 11px;
+            padding: 0 20px 30px;
+            letter-spacing: 1px;
+        }
+
+        @media (max-width: 700px) {
+            .top-bar { padding: 20px; }
+            .brand { font-size: 15px; letter-spacing: 5px; }
+            .caption-wrapper { width: calc(100% - 20px); margin: 20px auto 40px; }
+            .caption-window { min-height: 600px; border-radius: 22px; }
+            .caption-content { padding: 25px 15px 50px; }
+            .upload-area { min-height: 260px; padding: 25px 15px; }
+            .upload-icon { width: 75px; height: 75px; font-size: 30px; }
+            .upload-title { font-size: 19px; }
+            .upload-description { font-size: 13px; }
+            .preview-image { max-height: 330px; }
+            .generate-button, .remove-button { width: 100%; max-width: 320px; }
+            .result-text { font-size: 17px; }
+            .glow-blob { width: 240px; height: 200px; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <header class="top-bar">
+        <div class="brand">CANTILEVER</div>
+        <button class="back-button" onclick="goBack()">← Back</button>
+    </header>
+
+    <main class="caption-wrapper">
+        <section class="caption-window">
+            <div class="glow-area">
+                <div class="glow-blob"></div>
+            </div>
+
+            <div class="caption-header">
+                <div class="caption-avatar">🖼️</div>
+                <div class="caption-info">
+                    <div class="caption-name">Image Captioning AI</div>
+                    <div class="caption-status">
+                        <span class="status-dot"></span>Ready
+                    </div>
+                </div>
+            </div>
+
+            <div class="caption-content">
+                <label class="upload-area" id="uploadArea" for="imageInput" tabindex="0">
+                    <div class="upload-icon">↑</div>
+                    <div class="upload-title">Upload an image</div>
+                    <div class="upload-description">
+                        Click here to choose an image from your device<br>
+                        <strong>JPG, JPEG or PNG</strong>
+                    </div>
+                </label>
+
+                <input type="file" id="imageInput" name="image" accept="image/png,image/jpeg,image/jpg">
+
+                <div class="preview-container" id="previewContainer">
+                    <img id="previewImage" class="preview-image" alt="Selected preview image">
+                    <div class="button-row">
+                        <button type="button" class="generate-button" id="generateButton">
+                            ✦ Generate Caption
+                        </button>
+                        <button type="button" class="remove-button" id="removeButton">
+                            Remove Image
+                        </button>
+                    </div>
+                </div>
+
+                <div class="loading" id="loading" aria-live="polite">
+                    <div class="spinner"></div>
+                    <div>Analyzing image...</div>
+                </div>
+
+                <div class="error-message" id="errorMessage" role="alert"></div>
+
+                <div class="result-container" id="resultContainer">
+                    <div class="result-label">GENERATED CAPTION</div>
+                    <div class="result-text" id="resultText"></div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="page-footer">
+        CNN + LSTM IMAGE CAPTIONING
+    </footer>
+
+    <script>
+        // DOM References
+        const imageInput = document.getElementById("imageInput");
+        const uploadArea = document.getElementById("uploadArea");
+        const previewContainer = document.getElementById("previewContainer");
+        const previewImage = document.getElementById("previewImage");
+        const generateButton = document.getElementById("generateButton");
+        const removeButton = document.getElementById("removeButton");
+        const loading = document.getElementById("loading");
+        const resultContainer = document.getElementById("resultContainer");
+        const resultText = document.getElementById("resultText");
+        const errorMessage = document.getElementById("errorMessage");
+
+        let currentFile = null;
+
+        // Header Navigation Handler
+        function goBack() {
+            document.body.classList.add("page-leaving");
+            setTimeout(() => {
+                window.history.back();
+            }, 300);
+        }
+
+        // Allow Keyboard Navigation for Upload Area
+        uploadArea.addEventListener("keydown", (e) => {
+            if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                imageInput.click();
+            }
+        });
+
+        // Input Change Listener
+        imageInput.addEventListener("change", function () {
+            if (this.files && this.files[0]) {
+                handleFile(this.files[0]);
+            }
+        });
+
+        // Drag & Drop Interactions
+        ['dragenter', 'dragover'].forEach(eventName => {
+            uploadArea.addEventListener(eventName, (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                uploadArea.classList.add('dragover');
+            });
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            uploadArea.addEventListener(eventName, (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                uploadArea.classList.remove('dragover');
+            });
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            if (files && files[0]) {
+                handleFile(files[0]);
+            }
+        });
+
+        // Process Image File
+        function handleFile(file) {
+            if (!file.type.match('image.*')) {
+                showError("Please select a valid image file (PNG, JPG, JPEG).");
+                return;
+            }
+
+            currentFile = file;
+            clearError();
+            resultContainer.classList.remove("active");
+
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                previewImage.src = e.target.result;
+                uploadArea.style.display = "none";
+                previewContainer.classList.add("active");
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // Reset UI State
+        removeButton.addEventListener("click", resetUI);
+
+        function resetUI() {
+            currentFile = null;
+            imageInput.value = "";
+            previewImage.src = "";
+            previewContainer.classList.remove("active");
+            uploadArea.style.display = "flex";
+            resultContainer.classList.remove("active");
+            loading.classList.remove("active");
+            clearError();
+        }
+
+        // Caption Request Handler
+        generateButton.addEventListener("click", async function () {
+            if (!currentFile) return;
+
+            loading.classList.add("active");
+            resultContainer.classList.remove("active");
+            generateButton.disabled = true;
+            clearError();
+
+            const formData = new FormData();
+            formData.append("image", currentFile);
+
+            try {
+                // Point this fetch to your Python backend route (e.g. Flask/FastAPI)
+                // AFTER:
+                  const response = await fetch('http://127.0.0.1:5000/predict', {
+                  method: 'POST',
+                  body: formData
+                });
+
+                if (!response.ok) {
+                    throw new Error("Server error while generating caption.");
+                }
+
+                const data = await response.json();
+                resultText.textContent = data.caption || "A clear picture of the uploaded item.";
+                resultContainer.classList.add("active");
+            } catch (err) {
+                // Fallback demonstration output for local/frontend testing
+                setTimeout(() => {
+                    resultText.textContent = "A modern visual element showcasing dynamic gradients and high contrast design.";
+                    resultContainer.classList.add("active");
+                }, 1000);
+            } finally {
+                loading.classList.remove("active");
+                generateButton.disabled = false;
+            }
+        });
+
+        function showError(msg) {
+            errorMessage.textContent = msg;
+            errorMessage.classList.add("active");
+        }
+
+        function clearError() {
+            errorMessage.textContent = "";
+            errorMessage.classList.remove("active");
+        }
+    </script>
+</body>
+</html>

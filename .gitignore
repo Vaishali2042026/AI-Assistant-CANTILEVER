@@ -1,0 +1,17 @@
+# Python cache
+__pycache__/
+*.py[cod]
+
+# Virtual environment
+venv/
+env/
+.venv/
+
+# Temp image uploads
+image_captioning/temp/
+temp_uploads/
+
+# Large model checkpoints / cache
+*.keras
+*.h5
+*.pkl

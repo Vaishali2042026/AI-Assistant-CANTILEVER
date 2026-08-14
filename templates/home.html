@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>AI Assistant | CANTILEVER</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+    font-family: Arial, Helvetica, sans-serif;
+    color: #ffffff;
+    min-height: 100vh;
+
+    background:
+        radial-gradient(
+            circle at 20% 20%,
+            rgba(180, 20, 120, 0.45),
+            transparent 30%
+        ),
+        radial-gradient(
+            circle at 80% 25%,
+            rgba(70, 20, 140, 0.40),
+            transparent 32%
+        ),
+        radial-gradient(
+            circle at 50% 75%,
+            rgba(120, 10, 90, 0.30),
+            transparent 35%
+        ),
+        linear-gradient(
+            135deg,
+            #050506 0%,
+            #100812 35%,
+            #08060c 70%,
+            #030304 100%
+        );
+
+    background-attachment: fixed;
+}
+
+        
+
+        /* --------------------------------
+           TOP BAR
+        -------------------------------- */
+
+        .top-bar {
+    height: 76px;
+    background: rgba(5, 5, 7, 0.85);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 55px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+        .brand {
+            font-size: 18px;
+            font-weight: 700;
+            letter-spacing: 6px;
+        }
+
+        .top-link {
+            color: #ffffff;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        /* --------------------------------
+           MAIN
+        -------------------------------- */
+
+        .main {
+            min-height: calc(100vh - 76px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 70px 30px;
+        }
+
+        .showcase {
+            width: min(1200px, 100%);
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 70px;
+            align-items: center;
+        }
+
+        /* --------------------------------
+           LEFT SIDE
+        -------------------------------- */
+
+        .intro {
+            padding-left: 35px;
+        }
+
+        .small-title {
+            font-size: 13px;
+            letter-spacing: 5px;
+            font-weight: 600;
+            margin-bottom: 22px;
+            text-transform: uppercase;
+        }
+
+        .intro h1 {
+            font-size: clamp(55px, 7vw, 100px);
+            line-height: 0.9;
+            letter-spacing: -5px;
+            font-weight: 800;
+            margin-bottom: 30px;
+        }
+
+        .intro p {
+            max-width: 470px;
+            font-size: 18px;
+            line-height: 1.7;
+            color: #5f6368;
+            margin-bottom: 40px;
+        }
+
+        /* --------------------------------
+           BUTTONS
+        -------------------------------- */
+
+        .buttons {
+            display: flex;
+            gap: 14px;
+            flex-wrap: wrap;
+        }
+
+        .button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 165px;
+            padding: 16px 24px;
+            border-radius: 30px;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 600;
+            transition: 0.25s ease;
+        }
+
+        .button-dark {
+            background: #111;
+            color: white;
+        }
+
+        .button-light {
+            background: white;
+            color: #111;
+            border: 1px solid #dddddd;
+        }
+
+        .button:hover {
+            transform: translateY(-2px);
+        }
+
+        /* --------------------------------
+           PHONE SHOWCASE
+        -------------------------------- */
+
+        .phone-area {
+            height: 600px;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .phone {
+            width: 220px;
+            height: 440px;
+            background: #111;
+            border-radius: 34px;
+            padding: 9px;
+            position: absolute;
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.20);
+        }
+
+        .phone-left {
+            transform: translateX(-155px) rotate(-8deg);
+            z-index: 1;
+        }
+
+        .phone-center {
+            width: 240px;
+            height: 480px;
+            z-index: 3;
+        }
+
+        .phone-right {
+            transform: translateX(155px) rotate(8deg);
+            z-index: 1;
+        }
+
+        .screen {
+            width: 100%;
+            height: 100%;
+            background: #f5f5f5;
+            border-radius: 27px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .notch {
+            position: absolute;
+            top: 8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 22px;
+            border-radius: 20px;
+            background: #000;
+            z-index: 5;
+        }
+
+        /* --------------------------------
+           PHONE CONTENT
+        -------------------------------- */
+
+        .screen-header {
+            padding: 45px 18px 15px;
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .screen-subtitle {
+            padding: 0 18px;
+            font-size: 10px;
+            color: #777;
+            line-height: 1.5;
+        }
+
+        .chat-preview {
+            padding: 18px 12px;
+        }
+
+        .bubble {
+            padding: 11px 13px;
+            border-radius: 15px;
+            margin-bottom: 12px;
+            font-size: 10px;
+            line-height: 1.5;
+            max-width: 85%;
+        }
+
+        .bubble-user {
+            background: #111;
+            color: white;
+            margin-left: auto;
+            border-bottom-right-radius: 5px;
+        }
+
+        .bubble-bot {
+            background: #dededc;
+            color: #222;
+            border-bottom-left-radius: 5px;
+        }
+
+        .image-preview {
+            margin: 25px 14px;
+            height: 170px;
+            border-radius: 18px;
+            background:
+                linear-gradient(
+                    135deg,
+                    #d7d0d5,
+                    #aaa1a8,
+                    #ded9dc
+                );
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 42px;
+        }
+
+        .image-text {
+            padding: 0 18px;
+            font-size: 12px;
+            line-height: 1.5;
+            font-weight: 600;
+        }
+
+        .phone-bottom {
+            position: absolute;
+            bottom: 14px;
+            left: 15px;
+            right: 15px;
+            height: 38px;
+            background: white;
+            border-radius: 20px;
+            border: 1px solid #ddd;
+            font-size: 10px;
+            color: #999;
+            display: flex;
+            align-items: center;
+            padding-left: 14px;
+        }
+
+        /* --------------------------------
+           RESPONSIVE
+        -------------------------------- */
+
+        @media (max-width: 900px) {
+
+            .showcase {
+                grid-template-columns: 1fr;
+                gap: 30px;
+            }
+
+            .intro {
+                padding-left: 0;
+                text-align: center;
+            }
+
+            .intro p {
+                margin-left: auto;
+                margin-right: auto;
+            }
+
+            .buttons {
+                justify-content: center;
+            }
+
+            .phone-area {
+                height: 500px;
+                transform: scale(0.85);
+            }
+        }
+
+        @media (max-width: 600px) {
+
+            .top-bar {
+                padding: 0 22px;
+            }
+
+            .brand {
+                font-size: 15px;
+                letter-spacing: 4px;
+            }
+
+            .intro h1 {
+                font-size: 58px;
+                letter-spacing: -3px;
+            }
+
+            .phone-area {
+                transform: scale(0.65);
+                margin-top: -60px;
+            }
+
+            .main {
+                padding: 45px 20px;
+            }
+        }
+    </style>
+</head>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    // Smoothly enter the page
+    document.body.classList.remove("page-exit");
+
+    // Handle internal navigation
+    document.querySelectorAll("a").forEach(function (link) {
+
+        link.addEventListener("click", function (event) {
+
+            const href = this.getAttribute("href");
+
+            // Ignore empty links, anchors, external links and new tabs
+            if (
+                !href ||
+                href.startsWith("#") ||
+                href.startsWith("http") ||
+                this.target === "_blank"
+            ) {
+                return;
+            }
+
+            event.preventDefault();
+
+            document.body.classList.add("page-exit");
+
+            setTimeout(function () {
+                window.location.href = href;
+            }, 400);
+        });
+    });
+
+});
+</script>
+
+<body>
+
+    <!-- TOP NAVIGATION -->
+
+    <header class="top-bar">
+
+        <div class="brand">
+            CANTILEVER
+        </div>
+
+        <a href="/" class="top-link">
+            AI Assistant
+        </a>
+
+    </header>
+
+
+    <!-- MAIN SHOWCASE -->
+
+    <main class="main">
+
+        <section class="showcase">
+
+            <!-- LEFT CONTENT -->
+
+            <div class="intro">
+
+                <div class="small-title">
+                    Artificial Intelligence
+                </div>
+
+                <h1>
+                    AI<br>
+                    Assistant
+                </h1>
+
+                <p>
+                    Intelligent tools for natural conversation
+                    and visual understanding.
+                </p>
+
+                <div class="buttons">
+
+                    <a href="/chatbot" class="button button-dark">
+                        NLP Chatbot →
+                    </a>
+
+                    <a href="/image-caption" class="button button-light">
+                        Image Captioning →
+                    </a>
+
+                </div>
+
+            </div>
+
+
+            <!-- PHONE STYLE SHOWCASE -->
+
+            <div class="phone-area">
+
+
+                <!-- LEFT PHONE -->
+
+                <div class="phone phone-left">
+
+                    <div class="screen">
+
+                        <div class="notch"></div>
+
+                        <div class="screen-header">
+                            AI Assistant
+                        </div>
+
+                        <div class="screen-subtitle">
+                            Natural Language Processing
+                        </div>
+
+                        <div class="chat-preview">
+
+                            <div class="bubble bubble-user">
+                                What is Python?
+                            </div>
+
+                            <div class="bubble bubble-bot">
+                                Python is a popular programming
+                                language used for web development,
+                                data science, automation and
+                                artificial intelligence.
+                            </div>
+
+                            <div class="bubble bubble-user">
+                                What is NLP?
+                            </div>
+
+                            <div class="bubble bubble-bot">
+                                NLP stands for Natural Language
+                                Processing.
+                            </div>
+
+                        </div>
+
+                        <div class="phone-bottom">
+                            Type a message...
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- CENTER PHONE -->
+
+                <div class="phone phone-center">
+
+                    <div class="screen">
+
+                        <div class="notch"></div>
+
+                        <div class="screen-header">
+                            AI Assistant
+                        </div>
+
+                        <div class="screen-subtitle">
+                            Have a conversation
+                        </div>
+
+                        <div class="chat-preview">
+
+                            <div class="bubble bubble-user">
+                                Hello
+                            </div>
+
+                            <div class="bubble bubble-bot">
+                                Hello! How can I help you?
+                            </div>
+
+                            <div class="bubble bubble-user">
+                                What is machine learning?
+                            </div>
+
+                            <div class="bubble bubble-bot">
+                                Machine learning is a branch of
+                                artificial intelligence where
+                                computers learn patterns from data.
+                            </div>
+
+                            <div class="bubble bubble-user">
+                                Tell me about BCA
+                            </div>
+
+                            <div class="bubble bubble-bot">
+                                BCA stands for Bachelor of
+                                Computer Applications.
+                            </div>
+
+                        </div>
+
+                        <div class="phone-bottom">
+                            Send message...
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- RIGHT PHONE -->
+
+                <div class="phone phone-right">
+
+                    <div class="screen">
+
+                        <div class="notch"></div>
+
+                        <div class="screen-header">
+                            Image Captioning
+                        </div>
+
+                        <div class="screen-subtitle">
+                            Visual understanding
+                        </div>
+
+                        <div class="image-preview">
+                            🖼️
+                        </div>
+
+                        <div class="image-text">
+                            Upload an image and let AI
+                            understand its visual content
+                            and generate a meaningful caption.
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+</body>
+</html>

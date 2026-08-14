@@ -1,0 +1,306 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+
+body {
+    font-family: Arial, Helvetica, sans-serif;
+    background: #f5f5f2;
+    color: #171717;
+}
+
+
+.home {
+    width: min(1100px, 90%);
+    margin: auto;
+    min-height: 100vh;
+
+    display: flex;
+    flex-direction: column;
+}
+
+
+/* ---------------- HEADER ---------------- */
+
+.hero {
+    padding-top: 55px;
+    text-align: center;
+}
+
+
+.brand {
+    font-size: 18px;
+    letter-spacing: 4px;
+    font-weight: bold;
+}
+
+
+.badge {
+    display: inline-block;
+
+    margin-top: 25px;
+    padding: 7px 14px;
+
+    border: 1px solid #d4d4d0;
+    border-radius: 30px;
+
+    font-size: 11px;
+    letter-spacing: 1.5px;
+    color: #666;
+}
+
+
+.hero h1 {
+    margin-top: 22px;
+
+    font-size: clamp(48px, 7vw, 82px);
+    letter-spacing: -4px;
+    font-weight: 600;
+}
+
+
+.hero p {
+    margin-top: 20px;
+
+    color: #707070;
+    font-size: 17px;
+    line-height: 1.7;
+}
+
+
+/* ---------------- CARDS ---------------- */
+
+.features {
+
+    display: grid;
+
+    grid-template-columns: repeat(2, 1fr);
+
+    gap: 22px;
+
+    margin-top: 65px;
+}
+
+
+.feature-card {
+
+    background: #ffffff;
+
+    border: 1px solid #e5e5e1;
+
+    border-radius: 22px;
+
+    padding: 38px;
+
+    min-height: 330px;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+
+    transition:
+        transform 0.25s ease,
+        box-shadow 0.25s ease;
+}
+
+
+.feature-card:hover {
+
+    transform: translateY(-6px);
+
+    box-shadow:
+        0 18px 45px rgba(0, 0, 0, 0.08);
+}
+
+
+.feature-icon {
+
+    width: 54px;
+    height: 54px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    background: #f1f1ee;
+
+    border-radius: 15px;
+
+    font-size: 25px;
+}
+
+
+.feature-number {
+
+    font-size: 12px;
+
+    letter-spacing: 2px;
+
+    color: #999;
+}
+
+
+.feature-card h2 {
+
+    margin-top: 10px;
+
+    font-size: 29px;
+
+    letter-spacing: -1px;
+}
+
+
+.feature-card p {
+
+    margin-top: 14px;
+
+    max-width: 420px;
+
+    color: #707070;
+
+    line-height: 1.7;
+
+    font-size: 15px;
+}
+
+
+.explore {
+
+    display: inline-flex;
+
+    align-items: center;
+
+    gap: 10px;
+
+    margin-top: 25px;
+
+    color: #171717;
+
+    text-decoration: none;
+
+    font-size: 14px;
+
+    font-weight: bold;
+}
+
+
+.explore span {
+
+    font-size: 20px;
+
+    transition: transform 0.2s ease;
+}
+
+
+.explore:hover span {
+
+    transform: translateX(5px);
+}
+
+
+/* ---------------- FOOTER ---------------- */
+
+footer {
+
+    margin-top: auto;
+
+    padding: 35px 0;
+
+    text-align: center;
+
+    color: #999;
+
+    font-size: 12px;
+}
+
+
+/* ---------------- MOBILE ---------------- */
+
+@media (max-width: 700px) {
+
+    .features {
+
+        grid-template-columns: 1fr;
+
+        margin-top: 45px;
+    }
+
+
+    .hero h1 {
+
+        letter-spacing: -2px;
+    }
+
+
+    .feature-card {
+
+        min-height: 300px;
+    }
+
+}
+/* =========================================
+   GLOBAL PAGE TRANSITION
+   ========================================= */
+
+body {
+    opacity: 0;
+    transform: translateY(12px);
+    animation: pageEnter 0.7s ease forwards;
+}
+
+@keyframes pageEnter {
+    from {
+        opacity: 0;
+        transform: translateY(12px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+
+/* =========================================
+   PAGE EXIT TRANSITION
+   ========================================= */
+
+body.page-exit {
+    animation: pageExit 0.45s ease forwards;
+}
+
+@keyframes pageExit {
+    from {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    to {
+        opacity: 0;
+        transform: translateY(-12px);
+    }
+}
+
+
+/* =========================================
+   SMOOTH PAGE NAVIGATION
+   ========================================= */
+
+.page-transition {
+    transition:
+        opacity 0.45s ease,
+        transform 0.45s ease;
+}
+
+
+/* Respect accessibility settings */
+@media (prefers-reduced-motion: reduce) {
+    body,
+    body.page-exit {
+        animation: none;
+        opacity: 1;
+        transform: none;
+    }
+}
